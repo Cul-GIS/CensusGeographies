@@ -11,7 +11,7 @@ and ES modules.
 
 ## Live demo
 
-[View on GitHub Pages](https://ssitari.github.io/CensusGeographies/)
+[View on GitHub Pages](https://cul-gis.github.io/CensusGeographies/)
 
 ---
 
