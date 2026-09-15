@@ -77,13 +77,18 @@ export const STEPS = [
     scope: "United States",
     layer: "division",
     // Three levels in one frame, ordered by weight so they stay separable:
-    // faint white state lines (recognisable shapes to read the rest through),
+    // faint state lines (recognisable shapes to read the rest through),
     // medium division edges, heavy region boundaries on top. Without the
     // region lines the step names something the map never shows.
+    // The states go *under* the divisions rather than over them: a division
+    // edge is always a run of state edges, so on top they cut the division
+    // line into dashes. The regions stay on top, where a real level of the
+    // hierarchy belongs.
     // Division labels also carry their region — "New England (Northeast)" —
     // so a single hover answers it without decoding line weights.
     context: [],
-    overlay: ["state", "region"],
+    underlay: ["state"],
+    overlay: ["region"],
     // Region first: earlier entries win the space when two labels collide, so
     // a division is what gets nudged, never a region.
     labels: ["region", "division"],

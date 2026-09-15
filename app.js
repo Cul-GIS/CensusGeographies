@@ -16,8 +16,8 @@ const panesEl = document.getElementById("panes");
 // override from the step, so a single-pane step needs no pane config at all.
 //
 // Group order per pane is load-bearing: the land backdrop at the very bottom,
-// then context, then the units, then roads, then overlay boundaries drawn
-// *above* the units — context alone
+// then context, then underlay boundaries, then the units, then roads, then
+// overlay boundaries drawn *above* the units — context alone
 // is not enough for a reference layer, because filled units cover it — then
 // labels on top of everything.
 let panes = [];
@@ -60,6 +60,10 @@ function buildPanes(cfgs) {
       // units are sitting on instead of floating on white paper.
       gBackdrop: svg.append("g").attr("class", "layer-backdrop"),
       gContext: svg.append("g").attr("class", "layer-context"),
+      // Reference boundaries that belong *under* the units. Same styling as
+      // the overlay group, opposite side of the units — see the note on
+      // `underlay` below for when a reference layer wants to be down here.
+      gUnderlay: svg.append("g").attr("class", "layer-underlay"),
       gMain: svg.append("g").attr("class", "layer-main"),
       gRoads: svg.append("g").attr("class", "layer-roads"),
       gOverlay: svg.append("g").attr("class", "layer-overlay"),
@@ -183,6 +187,7 @@ async function drawPane(pane, cfg, main, animate) {
     pane.gMain.selectAll("path").remove();
     pane.gBackdrop.selectAll("path").remove();
     pane.gContext.selectAll("path").remove();
+    pane.gUnderlay.selectAll("path").remove();
     pane.gLabels.selectAll("*").remove();
     pane.gMarker.selectAll("*").remove();
     return;
@@ -255,22 +260,35 @@ async function drawPane(pane, cfg, main, animate) {
   all.transition().duration(animate ? 500 : 0).style("opacity", 1);
 
   pane.gOverlay.selectAll("path").remove();
+  pane.gUnderlay.selectAll("path").remove();
   // When a reference layer is drawn on top, the units underneath need a
   // stronger edge or the two read as one undifferentiated mesh — the division
   // boundaries have to be obviously the bolder of the two.
   pane.gMain.classed("has-overlay", !!(cfg.overlay || []).length);
 
-  for (const key of cfg.overlay || []) {
-    const ov = await layer(key);
-    if (!ov) continue;
-    pane.gOverlay
-      .selectAll(`path.ov-${key}`)
-      .data(ov.features)
-      .enter()
-      .append("path")
-      .attr("class", `overlay-line ov-${key}`)
-      .attr("d", path);
-  }
+  // Which side of the units a reference layer lands on decides what happens
+  // where the two run along the same line, and that is a judgement about
+  // which one the reader should see. On the divisions frame the state lines
+  // are scaffolding — a shape to recognise the country by — and every one of
+  // them that a division follows is *also* a division edge, so drawing them
+  // over the units broke the division line into dashes wherever it ran along
+  // a state. Underneath, the division covers them and reads as one line.
+  // The region boundary above the units is the opposite case: it is a real
+  // level of the hierarchy, and it should win where it coincides.
+  const drawRefs = async (g, keys) => {
+    for (const key of keys || []) {
+      const ov = await layer(key);
+      if (!ov) continue;
+      g.selectAll(`path.ov-${key}`)
+        .data(ov.features)
+        .enter()
+        .append("path")
+        .attr("class", `overlay-line ov-${key}`)
+        .attr("d", path);
+    }
+  };
+  await drawRefs(pane.gUnderlay, cfg.underlay);
+  await drawRefs(pane.gOverlay, cfg.overlay);
 
   await renderLabels(cfg, pane);
   drawColumbiaMarker(pane);
