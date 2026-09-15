@@ -15,8 +15,9 @@ const panesEl = document.getElementById("panes");
 // a side-by-side says anything. A pane inherits everything it does not
 // override from the step, so a single-pane step needs no pane config at all.
 //
-// Group order per pane is load-bearing: context underneath, then the units,
-// then roads, then overlay boundaries drawn *above* the units — context alone
+// Group order per pane is load-bearing: the land backdrop at the very bottom,
+// then context, then the units, then roads, then overlay boundaries drawn
+// *above* the units — context alone
 // is not enough for a reference layer, because filled units cover it — then
 // labels on top of everything.
 let panes = [];
@@ -54,6 +55,10 @@ function buildPanes(cfgs) {
     return {
       node,
       svg,
+      // Below the context: a land silhouette a step can put behind everything
+      // else, so a frame zoomed past the national view still shows what the
+      // units are sitting on instead of floating on white paper.
+      gBackdrop: svg.append("g").attr("class", "layer-backdrop"),
       gContext: svg.append("g").attr("class", "layer-context"),
       gMain: svg.append("g").attr("class", "layer-main"),
       gRoads: svg.append("g").attr("class", "layer-roads"),
@@ -176,11 +181,17 @@ async function draw(step, animate = true) {
 async function drawPane(pane, cfg, main, animate) {
   if (!main) {
     pane.gMain.selectAll("path").remove();
+    pane.gBackdrop.selectAll("path").remove();
     pane.gContext.selectAll("path").remove();
     pane.gLabels.selectAll("*").remove();
     pane.gMarker.selectAll("*").remove();
     return;
   }
+
+  const backdrop = cfg.backdrop ? await layer(cfg.backdrop) : null;
+  const bd = pane.gBackdrop.selectAll("path").data(backdrop ? backdrop.features : []);
+  bd.exit().remove();
+  bd.enter().append("path").merge(bd).attr("d", path).attr("class", "backdrop");
 
   // The basemap layer is drawn separately with line styling. If it also
   // appeared in `context` it would be drawn a second time as a filled polygon,

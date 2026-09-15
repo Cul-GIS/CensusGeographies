@@ -284,6 +284,12 @@
        rather than asking anyone to learn a colour key. */
     .context { fill: #e0ddd8; stroke: #fff; stroke-width: .6px; }
 
+    /* The land a zoomed frame sits on, under everything else. Lighter than
+       .context on purpose: it is the canvas, not a geography, and the counties
+       drawn over it have to stay the darker of the two greys. No stroke — an
+       edge would read as a boundary the step never mentions. */
+    .backdrop { fill: #eae7e1; stroke: none; pointer-events: none; }
+
     .unit {
       fill: none;
       stroke: #97382f;
@@ -315,6 +321,10 @@
        divisions are the step's own geography and take the standard red, while
        the region above them gets the heaviest line on the map. */
     .ov-region { stroke: #12314c; stroke-width: 3px; stroke-opacity: .95; }
+    /* Divisions are the step's own units on that frame, so they have to hold
+       their own against the region lines above them: 2.4px, 80% of the
+       region's 3px. At the default 1.3px they disappeared under it. */
+    .layer-main.has-overlay .unit { stroke-width: 2.4px; }
 
     .map-label {
       text-anchor: middle; dominant-baseline: middle; pointer-events: none;

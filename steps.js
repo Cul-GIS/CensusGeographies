@@ -194,6 +194,11 @@ export const STEPS = [
     // the metro outline. The first step in this tour whose context reaches
     // outside New York.
     context: ["county-msa"],
+    // The first frame far enough from the national view to lose all sense of
+    // where it is. A light-grey land silhouette behind the counties puts the
+    // coastline, Long Island and the Hudson back, so the metro reads as a
+    // piece of the country rather than 23 counties floating on white.
+    backdrop: "land-metro",
     projection: "local",
     callout: {
       status: "Statistical",

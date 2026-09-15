@@ -76,6 +76,16 @@ simplify place-metro  4%   place
 echo "metropolitan statistical area"
 simplify msa           2%  msa
 simplify county-msa    4%  county
+# Land backdrop for the MSA frame. Same national outline as national.json, but
+# clipped to a box around the metro and simplified far less: at metro zoom the
+# 1.5% national outline turns Long Island into a wedge, while the full-detail
+# file is 900 KB for a shape that is only ever grey fill. Clipping first means
+# we pay for detail only where it is on screen — 11 KB for the whole thing.
+# The box is roughly 1.5 degrees outside the MSA on every side, well past the
+# edge of the fitted frame, so the clip line is never visible.
+echo "  land-metro (backdrop)"
+"$MAPSHAPER" "$RAW/nation.geojson"   -rename-layers land   -clip bbox=-77.6,37.9,-69.4,43.6   -simplify 30% keep-shapes   -clean   -o "$OUT/land-metro.json" format=topojson id-field=GEOID quantization=1e5   >/dev/null 2>&1
+echo "  $(printf '%-14s' land-metro) $(du -h "$OUT/land-metro.json" | cut -f1)"
 
 echo "new york city"
 # 1.5%, far below the others: the DCP borough file is a survey-grade boundary

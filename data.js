@@ -54,6 +54,11 @@ export const DATA = {
                    labelWhen: (p) => p.LSAD !== "57", popProp: "POP" },
 
   msa:           { file: "msa.json",          object: "msa",      id: ID,   name: NAME },
+  // Backdrop only — the national land outline, clipped to a box around the
+  // metro and simplified much less than national.json, which at this zoom is
+  // too coarse to read as a coastline. Never a step's own layer, never
+  // labelled, never hovered.
+  "land-metro":  { file: "land-metro.json",   object: "land",     id: null, name: NAME },
   // Context only — never a step's own layer, never gets population data.
   // Spans three states (NY, NJ, PA), the first time this project has needed
   // county geometry outside New York.
